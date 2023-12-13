@@ -1,8 +1,10 @@
 ﻿@page "/blog"
 
 @using ProsjektOppgaveBlazor.data.Models;
-@using Microsoft.AspNetCore.Identity
 @inject HttpClient BlogHttpClient
+@inject ILocalStorageService localStorage
+@inject NavigationManager NavigationManager
+
 
 <h3>Create blog</h3>
 
@@ -26,7 +28,6 @@ else
                     <div class="form-check form-switch">
                         <label for="Status">Allow post and comments</label>
                         <InputCheckbox class="form-check-input" @bind-Value="Status" />
-                        <ValidationMessage For="@(()=>blog.Status)" />
                     </div>
                         <button class="btn btn-primary" type="submit">Save</button>
                     
@@ -73,8 +74,12 @@ else
 
     private async Task Save()
     {
-
+        
+        var token = await localStorage.GetItemAsync<string>("authToken");
+        BlogHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        
         var response = await BlogHttpClient.PostAsJsonAsync("https://localhost:7022/Blog", blog);
+        NavigationManager.NavigateTo("/blogs");
 
     }
 

@@ -2,6 +2,7 @@
 @using ProsjektOppgaveBlazor.data.Models;
 @inject HttpClient BlogHttpClient
 @inject NavigationManager NavigationManager
+@inject ILocalStorageService localStorage
 
 <h3>Blogs</h3>
 
@@ -45,6 +46,9 @@ else
 
     private async Task DeleteBlog(int id)
     {
+        var token = await localStorage.GetItemAsync<string>("authToken");
+        BlogHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await BlogHttpClient.DeleteAsync($"https://localhost:7022/Blog/{id}");
+        NavigationManager.NavigateTo("/blogs", true);
     }
 }

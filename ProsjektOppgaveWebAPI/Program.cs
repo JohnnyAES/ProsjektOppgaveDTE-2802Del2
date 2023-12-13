@@ -43,6 +43,7 @@ services.AddAuthentication(options =>
     .AddJwtBearer(options =>
     {
         options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
 
         var byteKey = Encoding.UTF8.GetBytes(builder.Configuration.GetSection("JwtOptions:Key").Value);
 

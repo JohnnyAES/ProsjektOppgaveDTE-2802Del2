@@ -47,17 +47,24 @@ public class BlogService : IBlogService
         var b = (from blog in _db.Blog
             where blog.BlogId == id
             select blog)
+            .Include(b => b.Owner)
             .Include(b => b.BlogTags)
             .FirstOrDefault();
         return b;
     }
  
-    public async Task Save(Blog blog, IPrincipal principal)
+    public async Task Save(Blog blog, string username)
     {
-        var user = await _manager.FindByNameAsync(principal.Identity?.Name);
+        Console.WriteLine("EYO");
+        Console.WriteLine(username);
+        Console.WriteLine("EYO");
+        var user = await _manager.FindByNameAsync(username);
+        Console.WriteLine("hmm");
+        Console.WriteLine(user?.UserName);
+        Console.WriteLine("hmm");
         if (user == null)
         {
-            throw new ArgumentNullException(nameof(principal), "User not found");
+            throw new ArgumentNullException(nameof(username), "User not found");
         }
 
         var existingBlog = _db.Blog.Find(blog.BlogId);
@@ -75,9 +82,9 @@ public class BlogService : IBlogService
         await _db.SaveChangesAsync();
     }
     
-    public async Task Delete(int id, IPrincipal principal)
+    public async Task Delete(int id, string username)
     {
-        var user = await _manager.FindByNameAsync(principal.Identity.Name);
+        var user = await _manager.FindByNameAsync(username);
         var blog = _db.Blog.Find(id);
 
         if (blog.Owner == user)
