@@ -1,8 +1,10 @@
-﻿@page "/post"
+﻿@page "/post/{BlogId:int}"
 
-@using ProsjektOppgaveBlazor.data.Models;
-@using Microsoft.AspNetCore.Identity
+@using ProsjektOppgaveBlazor.data.Models.ViewModel
+@using ProsjektOppgaveBlazor.data.Models
 @inject HttpClient BlogHttpClient
+@inject ILocalStorageService localStorage
+@inject NavigationManager NavigationManager
 
 <h3>Create post</h3>
 
@@ -41,42 +43,21 @@ else
 @code {
     [Parameter]
     public int PostId { get; set; }
+    
+    [Parameter]
+    public int BlogId { get; set; }
 
 
-    private Post post = new Post();
+    private PostViewModel post = new PostViewModel();
 
 
     private async Task Save()
     {
-        
-        string dateStr = "2023-12-06T04:26:57.086Z";
-        DateTimeOffset lockoutEnd = DateTimeOffset.Parse(dateStr);
-        var hasher = new PasswordHasher<IdentityUser>();
-        post.OwnerId = "57365b7a-5844-4312-a38d-fbb40efbdf08";
-        post.Owner = new IdentityUser
-            {
-            UserName = "admin",
-            NormalizedUserName = "ADMIN",
-            Email = "admin@example.com",
-            NormalizedEmail = "ADMIN@EXAMPLE.COM",
-            EmailConfirmed = true,
-            PasswordHash = hasher.HashPassword(null, "AdminPassword123!"),
-            SecurityStamp = string.Empty,
-            ConcurrencyStamp = string.Empty,
-            PhoneNumber = string.Empty,
-            PhoneNumberConfirmed = false,
-            TwoFactorEnabled = false,
-            LockoutEnd = lockoutEnd,
-            LockoutEnabled = false,
-            AccessFailedCount = 0
-
-
-        };
-
-
+        post.BlogId = BlogId;
+        var token = await localStorage.GetItemAsync<string>("authToken");
+        BlogHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await BlogHttpClient.PostAsJsonAsync("https://localhost:7022/post", post);
-
-
+        NavigationManager.NavigateTo($"/posts/{BlogId}");
     }
 
 }

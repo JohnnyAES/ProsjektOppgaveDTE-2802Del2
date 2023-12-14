@@ -25,9 +25,9 @@ public interface IBlogService
 
     Post? GetPost(int id);
     
-    Task SavePost(Post post, IPrincipal principal);
+    Task SavePost(Post post, string username);
 
-    Task DeletePost(int id, IPrincipal principal);
+    Task DeletePost(int id, string username);
     
     PostViewModel GetPostViewModel();
 

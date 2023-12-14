@@ -126,6 +126,7 @@ public class BlogService : IBlogService
         var p = (from post in _db.Post
                 where post.PostId == id
                 select post)
+            .Include(p => p.Owner)
             .FirstOrDefault();
         return p;
     }
@@ -150,9 +151,10 @@ public class BlogService : IBlogService
         }
     }
     
-    public async Task SavePost(Post post, IPrincipal principal)
+    public async Task SavePost(Post post, string username)
     {
-        var user = await _manager.FindByNameAsync(principal.Identity.Name);
+        var user = await _manager.FindByNameAsync(username);
+        Console.WriteLine(user.UserName);
 
         var existingPost = _db.Post.Find(post.PostId);
         if (existingPost != null)
@@ -169,9 +171,9 @@ public class BlogService : IBlogService
         await _db.SaveChangesAsync();
     }
 
-    public async Task DeletePost(int id, IPrincipal principal)
+    public async Task DeletePost(int id, string username)
     {
-        var user = await _manager.FindByNameAsync(principal.Identity.Name);
+        var user = await _manager.FindByNameAsync(username);
         var post = _db.Post.Find(id);
         
         if (post.Owner == user)
