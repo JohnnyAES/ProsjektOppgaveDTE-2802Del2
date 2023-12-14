@@ -1,8 +1,9 @@
-﻿@page "/comment"
+﻿@page "/comment/{PostId:int}"
 
-@using ProsjektOppgaveBlazor.data.Models;
-@using Microsoft.AspNetCore.Identity
+@using ProsjektOppgaveBlazor.data.Models.ViewModel
 @inject HttpClient BlogHttpClient
+@inject ILocalStorageService localStorage
+@inject NavigationManager NavigationManager
 
 <h3>Create post</h3>
 
@@ -36,15 +37,21 @@ else
 @code {
     [Parameter]
     public int CommentId { get; set; }
+    
+    [Parameter]
+    public int PostId { get; set; }
 
 
-    private Comment comment = new Comment();
+    private CommentViewModel comment = new CommentViewModel();
 
 
     private async Task Save()
     {
-
+        comment.PostId = PostId;
+        var token = await localStorage.GetItemAsync<string>("authToken");
+        BlogHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await BlogHttpClient.PostAsJsonAsync("https://localhost:7022/Comment", comment);
+        NavigationManager.NavigateTo($"/comments/{PostId}");
     }
 
 }

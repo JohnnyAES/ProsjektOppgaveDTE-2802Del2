@@ -1,8 +1,9 @@
 ﻿
-@page "/comment/{CommentId:int}"
+@page "/comment/edit/{CommentId:int}"
 @using ProsjektOppgaveBlazor.data.Models;
-@using Microsoft.AspNetCore.Identity
 @inject HttpClient BlogHttpClient
+@inject ILocalStorageService localStorage
+@inject NavigationManager NavigationManager
 
 <h3>Edit comment</h3>
 
@@ -43,7 +44,10 @@ else
     
     private async Task Save()
     {
+        var token = await localStorage.GetItemAsync<string>("authToken");
+        BlogHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await BlogHttpClient.PutAsJsonAsync($"https://localhost:7022/Comment/{CommentId}", comment);
+        NavigationManager.NavigateTo($"/comments/{comment.PostId}");
     }
 
 }

@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProsjektOppgaveWebAPI.Models;
+using ProsjektOppgaveWebAPI.Models.ViewModel;
 using ProsjektOppgaveWebAPI.Services.CommentServices;
 
 namespace ProsjektOppgaveWebAPI.Controllers;
@@ -34,21 +35,28 @@ public class CommentController : ControllerBase
     
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] Comment comment)
+    public async Task<IActionResult> Create([FromBody] CommentViewModel comment)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
+
+        var newComment = new Comment
+        {
+            Text = comment.Text,
+            PostId = comment.PostId
+        };
         
-        await _service.Save(comment, User);
+        var username = User.Claims.FirstOrDefault()?.Value;
+        await _service.Save(newComment, username);
         return CreatedAtAction("GetComment", new { id = comment.PostId }, comment);
     }
     
     
     [Authorize]
     [HttpPut("{id:int}")]
-    public IActionResult Update([FromRoute] int id, [FromBody] Comment comment)
+    public IActionResult Update([FromRoute] int id, [FromBody] CommentViewModel comment)
     {
         if (id != comment.CommentId)
             return BadRequest();
@@ -62,8 +70,15 @@ public class CommentController : ControllerBase
         {
             return Unauthorized();
         }
-
-        _service.Save(comment, User);
+        
+        var newComment = new Comment
+        {
+            CommentId = comment.CommentId,
+            Text = comment.Text,
+            PostId = comment.PostId
+        };
+        var username = User.Claims.FirstOrDefault()?.Value;
+        _service.Save(newComment, username);
 
         return NoContent();
     }
@@ -82,8 +97,8 @@ public class CommentController : ControllerBase
         {
             return Unauthorized();
         }
-
-        _service.Delete(id, User);
+        var username = User.Claims.FirstOrDefault()?.Value;
+        _service.Delete(id, username);
 
         return NoContent();
     }

@@ -48,9 +48,9 @@ public class CommentService : ICommentService
         return c;
     }
     
-    public async Task Save(Comment comment, IPrincipal principal)
+    public async Task Save(Comment comment, string username)
     {
-        var user = await _manager.FindByNameAsync(principal.Identity.Name);
+        var user = await _manager.FindByNameAsync(username);
 
         var existingComment = _db.Comment.Find(comment.CommentId);
         if (existingComment != null)
@@ -67,9 +67,9 @@ public class CommentService : ICommentService
         _db.SaveChanges();
     }
     
-    public async Task Delete(int id, IPrincipal principal)
+    public async Task Delete(int id, string username)
     {
-        var user = await _manager.FindByNameAsync(principal.Identity.Name);
+        var user = await _manager.FindByNameAsync(username);
         var comment = _db.Comment.Find(id);
         
         if (comment.Owner == user)

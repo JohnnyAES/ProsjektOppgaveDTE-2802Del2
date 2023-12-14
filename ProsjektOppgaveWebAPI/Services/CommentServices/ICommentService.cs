@@ -10,9 +10,9 @@ public interface ICommentService
 
     Comment? GetComment(int id);
     
-    Task Save(Comment comment, IPrincipal principal);
+    Task Save(Comment comment, string username);
 
-    Task Delete(int id, IPrincipal principal);
+    Task Delete(int id, string username);
 
     CommentViewModel GetCommentViewModel(int id);
 }

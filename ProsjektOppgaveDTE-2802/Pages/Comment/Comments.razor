@@ -1,11 +1,12 @@
-﻿@page "/comments/{PostId}"
+﻿@page "/comments/{PostId:int}"
 @using ProsjektOppgaveBlazor.data.Models;
 @inject HttpClient BlogHttpClient
 @inject NavigationManager NavigationManager
+@inject ILocalStorageService localStorage
 
 <h3>Comments</h3>
 
-<a class="btn btn-primary" href="comment">Create</a>
+<a class="btn btn-primary" href="comment/@PostId">Create</a>
 
 @if (comments == null) 
 {
@@ -26,8 +27,8 @@ else
         <tr>
             <td>@comment.Text</td>
             <td>@comment.Owner.Email</td>
-            <td><a href="comment/@comment.CommentId">Edit</a></td>
-            <td><a href="comments" @onclick="@(e =>DeleteBlog(comment.PostId))">Delete</a></td>
+            <td><a href="comment/edit/@comment.CommentId">Edit</a></td>
+            <td><a href="comments/@PostId" @onclick="@(e =>DeleteBlog(comment.PostId))">Delete</a></td>
         </tr>
     }
     </tbody>
@@ -36,7 +37,7 @@ else
 
 @code {
     [Parameter]
-    public string PostId { get; set; }
+    public int PostId { get; set; }
     private Comment[] comments;
 
     protected override async Task OnInitializedAsync()
@@ -46,6 +47,9 @@ else
 
     private async Task DeleteBlog(int id)
     {
+        var token = await localStorage.GetItemAsync<string>("authToken");
+        BlogHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await BlogHttpClient.DeleteAsync($"https://localhost:7022/Comment/{id}");
+        NavigationManager.NavigateTo($"/comments/{PostId}", true);
     }
 }
