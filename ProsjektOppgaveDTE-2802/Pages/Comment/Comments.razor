@@ -1,8 +1,10 @@
 ﻿@page "/comments/{PostId:int}"
 @using ProsjektOppgaveBlazor.data.Models;
+@using Microsoft.AspNetCore.SignalR.Client
 @inject HttpClient BlogHttpClient
 @inject NavigationManager NavigationManager
 @inject ILocalStorageService localStorage
+@implements IAsyncDisposable
 
 <h3>Comments</h3>
 
@@ -28,7 +30,7 @@ else
             <td>@comment.Text</td>
             <td>@comment.Owner.Email</td>
             <td><a href="comment/edit/@comment.CommentId">Edit</a></td>
-            <td><a href="comments/@PostId" @onclick="@(e =>DeleteBlog(comment.PostId))">Delete</a></td>
+            <td><a href="/comments/@PostId" @onclick="@(e =>DeleteComment(comment.CommentId))">Delete</a></td>
         </tr>
     }
     </tbody>
@@ -36,20 +38,47 @@ else
 }
 
 @code {
+    private HubConnection? hubConnection;
+    
     [Parameter]
     public int PostId { get; set; }
     private Comment[] comments;
 
     protected override async Task OnInitializedAsync()
     {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/commentHub"))
+            .Build();
         comments = await BlogHttpClient.GetFromJsonAsync<Comment[]>($"https://localhost:7022/Comment?postId={PostId}");
+
+        hubConnection.On<int>("RemoveComment", id =>
+        {
+            comments = comments.Where(c => c.CommentId != id).ToArray();
+            StateHasChanged();
+
+        });
+        await hubConnection.StartAsync();
     }
 
-    private async Task DeleteBlog(int id)
+    private async Task DeleteComment(int id)
     {
         var token = await localStorage.GetItemAsync<string>("authToken");
         BlogHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await BlogHttpClient.DeleteAsync($"https://localhost:7022/Comment/{id}");
-        NavigationManager.NavigateTo($"/comments/{PostId}", true);
+        if (response.IsSuccessStatusCode)
+        {
+            await hubConnection.SendAsync("DeleteComment", id);
+        }
+    }
+
+    public bool IsConnected =>
+        hubConnection?.State == HubConnectionState.Connected;
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
     }
 }

@@ -44,6 +44,7 @@ public class CommentService : ICommentService
         var c = (from comment in _db.Comment
                 where comment.CommentId == id
                 select comment)
+            .Include(c => c.Owner)
             .FirstOrDefault();
         return c;
     }

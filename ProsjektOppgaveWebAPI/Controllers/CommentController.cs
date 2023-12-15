@@ -65,8 +65,8 @@ public class CommentController : ControllerBase
         if (existingComment is null)
             return NotFound();
         
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (existingComment.OwnerId != userId)
+        var username = User.Claims.FirstOrDefault()?.Value;
+        if (existingComment.Owner.UserName != username)
         {
             return Unauthorized();
         }
@@ -77,7 +77,7 @@ public class CommentController : ControllerBase
             Text = comment.Text,
             PostId = comment.PostId
         };
-        var username = User.Claims.FirstOrDefault()?.Value;
+        
         _service.Save(newComment, username);
 
         return NoContent();
@@ -92,12 +92,12 @@ public class CommentController : ControllerBase
         if (comment is null)
             return NotFound();
         
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (comment.OwnerId != userId)
+        var username = User.Claims.FirstOrDefault()?.Value;
+        if (comment.Owner.UserName != username)
         {
             return Unauthorized();
         }
-        var username = User.Claims.FirstOrDefault()?.Value;
+        
         _service.Delete(id, username);
 
         return NoContent();
