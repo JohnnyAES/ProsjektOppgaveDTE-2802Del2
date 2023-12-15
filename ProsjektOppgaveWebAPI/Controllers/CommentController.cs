@@ -80,7 +80,7 @@ public class CommentController : ControllerBase
         
         _service.Save(newComment, username);
 
-        return NoContent();
+        return CreatedAtAction("GetComment", new { id = comment.PostId }, newComment);
     }
     
     

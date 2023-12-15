@@ -60,6 +60,14 @@ else
 
         }); 
         
+        hubConnection.On<Comment>("UpdateComment", comment =>
+        {
+
+            var editedComment = comments.FirstOrDefault(c => c.CommentId == comment.CommentId);
+            editedComment.Text = comment.Text;
+            StateHasChanged();
+        }); 
+        
         hubConnection.On<int>("RemoveComment", id =>
         {
             comments = comments.Where(c => c.CommentId != id).ToArray();

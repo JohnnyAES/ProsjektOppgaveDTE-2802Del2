@@ -11,6 +11,11 @@ public class CommentHub : Hub
         await Clients.All.SendAsync("NewComment", comment);
     }
 
+    public async Task EditComment(Comment comment)
+    {
+        await Clients.All.SendAsync("UpdateComment", comment);
+    }
+
     public async Task DeleteComment(int id)
     {
         await Clients.All.SendAsync("RemoveComment", id);
