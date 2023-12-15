@@ -50,7 +50,7 @@ public class CommentController : ControllerBase
         
         var username = User.Claims.FirstOrDefault()?.Value;
         await _service.Save(newComment, username);
-        return CreatedAtAction("GetComment", new { id = comment.PostId }, comment);
+        return CreatedAtAction("GetComment", new { id = comment.PostId }, newComment);
     }
     
     

@@ -1,6 +1,7 @@
 ﻿@page "/comments/{PostId:int}"
 @using ProsjektOppgaveBlazor.data.Models;
 @using Microsoft.AspNetCore.SignalR.Client
+@using ProsjektOppgaveBlazor.data.Models.ViewModel
 @inject HttpClient BlogHttpClient
 @inject NavigationManager NavigationManager
 @inject ILocalStorageService localStorage
@@ -51,6 +52,14 @@ else
             .Build();
         comments = await BlogHttpClient.GetFromJsonAsync<Comment[]>($"https://localhost:7022/Comment?postId={PostId}");
 
+        hubConnection.On<Comment>("NewComment", comment =>
+        {
+            
+            comments = comments.Concat(new []{comment}).ToArray();
+            StateHasChanged();
+
+        }); 
+        
         hubConnection.On<int>("RemoveComment", id =>
         {
             comments = comments.Where(c => c.CommentId != id).ToArray();
@@ -70,9 +79,7 @@ else
             await hubConnection.SendAsync("DeleteComment", id);
         }
     }
-
-    public bool IsConnected =>
-        hubConnection?.State == HubConnectionState.Connected;
+    
 
     public async ValueTask DisposeAsync()
     {

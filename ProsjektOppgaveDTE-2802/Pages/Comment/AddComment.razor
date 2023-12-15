@@ -1,9 +1,13 @@
 ﻿@page "/comment/{PostId:int}"
 
 @using ProsjektOppgaveBlazor.data.Models.ViewModel
+@using ProsjektOppgaveBlazor.data.Models
+@using Microsoft.AspNetCore.SignalR.Client
 @inject HttpClient BlogHttpClient
 @inject ILocalStorageService localStorage
 @inject NavigationManager NavigationManager
+@implements IAsyncDisposable
+
 
 <h3>Create post</h3>
 
@@ -35,6 +39,7 @@ else
 
 
 @code {
+    private HubConnection? hubConnection;
     [Parameter]
     public int CommentId { get; set; }
     
@@ -44,6 +49,15 @@ else
 
     private CommentViewModel comment = new CommentViewModel();
 
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/commentHub"))
+            .Build();
+        
+        await hubConnection.StartAsync();
+    }
+
 
     private async Task Save()
     {
@@ -51,7 +65,22 @@ else
         var token = await localStorage.GetItemAsync<string>("authToken");
         BlogHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await BlogHttpClient.PostAsJsonAsync("https://localhost:7022/Comment", comment);
+        if (response.IsSuccessStatusCode)
+        {
+            var result = await response.Content.ReadFromJsonAsync<Comment>();
+            await hubConnection.SendAsync("AddNewComment", result);
+            
+        }
+        
         NavigationManager.NavigateTo($"/comments/{PostId}");
+    }
+    
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
     }
 
 }

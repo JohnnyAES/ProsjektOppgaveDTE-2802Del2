@@ -1,11 +1,12 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using ProsjektOppgaveBlazor.data.Models;
+using ProsjektOppgaveBlazor.data.Models.ViewModel;
 
 namespace ProsjektOppgaveDTE_2802.Hubs;
 
 public class CommentHub : Hub
 {
-    public async Task SendComment(Comment comment)
+    public async Task AddNewComment(Comment comment)
     {
         await Clients.All.SendAsync("NewComment", comment);
     }
