@@ -2,6 +2,7 @@
 
 @using ProsjektOppgaveBlazor.data.Models.ViewModel
 @using ProsjektOppgaveBlazor.data.Models
+@using System.Collections.Immutable
 @inject HttpClient BlogHttpClient
 @inject ILocalStorageService localStorage
 @inject NavigationManager NavigationManager
@@ -46,18 +47,76 @@ else
     
     [Parameter]
     public int BlogId { get; set; }
-
-
+    
     private PostViewModel post = new PostViewModel();
-
+    private Tag newTag = new Tag();
+    private PostTagRelations tagRelation = new PostTagRelations();
+    
+    List<string> tags = new List<string>();
 
     private async Task Save()
     {
+        string word = "";
+        bool isTag = false;
+        var count = 0;
+        foreach (var letter in post.Content)
+        {
+            List <string> stopCharacters = new List<string>{" ", ",", ".", "#", ""};
+
+            if (letter.ToString() == "#")
+            {
+                isTag = true;
+                word = "";
+            }
+            
+            else if (stopCharacters.Contains(letter.ToString()))
+            {
+                if (isTag)
+                {
+                    tags.Add(word);
+                    isTag = false;
+                }
+                word = ""; 
+            }
+            else
+            {
+                word += letter.ToString();
+            }
+            
+        }
+        if (isTag)
+        {
+            tags.Add(word);
+        }
+        
         post.BlogId = BlogId;
         var token = await localStorage.GetItemAsync<string>("authToken");
         BlogHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await BlogHttpClient.PostAsJsonAsync("https://localhost:7022/post", post);
+        if (response.IsSuccessStatusCode)
+        {
+            var newPostId = response.Content.ReadFromJsonAsync<int>().Result;
+            foreach (var tag in tags)
+            {
+                newTag.Name = tag;
+                
+                BlogHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                var tagResponse = await BlogHttpClient.PostAsJsonAsync("https://localhost:7022/Tag", newTag);
+                var newTagId = tagResponse.Content.ReadFromJsonAsync<Tag>().Result.Id;
+                tagRelation.TagId = newTagId;
+                tagRelation.PostId = newPostId;
+                Console.WriteLine(newTagId);
+                Console.WriteLine(newTagId);
+                Console.WriteLine(newTagId);
+                Console.WriteLine(newPostId);
+                Console.WriteLine(newPostId);
+                Console.WriteLine(newPostId);
+                
+
+                BlogHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                await BlogHttpClient.PostAsJsonAsync("https://localhost:7022/tag/relation", tagRelation);
+            }
+        }
         NavigationManager.NavigateTo($"/posts/{BlogId}");
     }
-
 }

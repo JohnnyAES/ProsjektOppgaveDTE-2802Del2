@@ -10,5 +10,4 @@ public class Blog
     public IdentityUser Owner { get; set; }
     public List<Post> Posts { get; set; }
     public int Status { get; set; }
-    public ICollection<BlogTagRelations> BlogTags { get; set; }
 }

@@ -48,7 +48,6 @@ public class BlogService : IBlogService
             where blog.BlogId == id
             select blog)
             .Include(b => b.Owner)
-            .Include(b => b.BlogTags)
             .FirstOrDefault();
         return b;
     }
@@ -127,6 +126,7 @@ public class BlogService : IBlogService
                 where post.PostId == id
                 select post)
             .Include(p => p.Owner)
+            .Include(p => p.PostTags)
             .FirstOrDefault();
         return p;
     }
@@ -138,6 +138,7 @@ public class BlogService : IBlogService
             var posts = _db.Post
                 .Where(p => p.BlogId == blogId)
                 .Include(p => p.Owner)
+                .Include(p => p.PostTags)
                 .ToList();
 
             return posts;

@@ -56,7 +56,7 @@ public class PostController : ControllerBase
         var username = User.Claims.FirstOrDefault()?.Value;
         
         await _service.SavePost(newPost, username);
-        return CreatedAtAction("GetPosts", new { id = post.BlogId }, post);
+        return CreatedAtAction("GetPosts", new { id = post.PostId }, newPost.PostId);
     }
 
     

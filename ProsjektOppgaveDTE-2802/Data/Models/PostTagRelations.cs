@@ -1,7 +1,7 @@
 namespace ProsjektOppgaveBlazor.data.Models;
 
-public class BlogTagRelations
+public class PostTagRelations
 {
-    public int BlogId { get; set; }
+    public int PostId { get; set; }
     public int TagId { get; set; }
 }

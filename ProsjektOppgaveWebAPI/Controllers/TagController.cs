@@ -15,6 +15,12 @@ public class TagController : ControllerBase
     {
         _service = service;
     }
+    
+    [HttpGet]
+    public async Task<IEnumerable<Tag>> GetTags()
+    {
+        return await _service.GetTags();
+    }
 
 
     [Authorize]
@@ -28,6 +34,23 @@ public class TagController : ControllerBase
 
         await _service.Save(tag);
 
+        return CreatedAtAction("GetTags", new { id = tag.Id }, tag);
+    }
+    
+    [Authorize]
+    [HttpPost("relation")]
+    public async Task<IActionResult> CreateRelation([FromBody] PostTagRelations pTagRelation)
+
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        Console.WriteLine(" ");
+        Console.WriteLine(" ey ");
+        Console.WriteLine(" ");
+        await _service.CreateTagRelation(pTagRelation);
         return Ok();
     }
+    
 }
