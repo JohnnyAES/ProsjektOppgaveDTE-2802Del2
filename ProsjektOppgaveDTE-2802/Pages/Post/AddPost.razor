@@ -9,36 +9,31 @@
 
 <h3>Create post</h3>
 
-@if (post == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div class="row">
-        <div class="col-md-3">
-            <EditForm Model="@post" OnValidSubmit="Save">
-                <DataAnnotationsValidator/>
-                <div class="form-group">
-                    <div>
-                        <label for="Name">Post title:</label>
-                        <InputText class="form-control" @bind-Value="post.Title" />
-                        <ValidationMessage For="@(()=>post.Title)" />
-                    </div>
-                    <div>
-                        <label for="Name">Post content:</label>
-                        <InputText class="form-control" @bind-Value="post.Content" />
-                        <ValidationMessage For="@(()=>post.Content)" />
-                    </div>
-                        
-                        <button class="btn btn-primary" type="submit">Save</button>
-                    
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+<div class="row">
+    <div class="col-md-3">
+        <EditForm Model="@post" OnValidSubmit="Save">
+            <DataAnnotationsValidator/>
+            <div class="form-group">
+                <div>
+                    <label for="Name">Post title:</label>
+                    <InputText class="form-control" @bind-Value="post.Title" />
+                    <ValidationMessage For="@(()=>post.Title)" />
                 </div>
-            </EditForm>
-        </div>
+                <div>
+                    <label for="Name">Post content:</label>
+                    <InputText class="form-control" @bind-Value="post.Content" />
+                    <ValidationMessage For="@(()=>post.Content)" />
+                </div>
+                    
+                    <button class="btn btn-primary" type="submit">Save</button>
+                
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            </div>
+        </EditForm>
     </div>
-}
+</div>
+
 
 
 @code {

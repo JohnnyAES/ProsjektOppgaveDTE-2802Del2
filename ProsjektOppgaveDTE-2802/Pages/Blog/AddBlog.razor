@@ -8,35 +8,30 @@
 
 <h3>Create blog</h3>
 
-@if (blog == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div class="row">
-        <div class="col-md-3">
-            <EditForm Model="@blog" OnValidSubmit="Save">
-                <DataAnnotationsValidator/>
-                <div class="form-group">
-                    <div>
-                        <label for="Name">Blog Name:</label>
-                        <InputText class="form-control" @bind-Value="blog.Name" />
-                        <ValidationMessage For="@(()=>blog.Name)" />
 
-                    </div>
-                    <div class="form-check form-switch">
-                        <label for="Status">Allow post and comments</label>
-                        <InputCheckbox class="form-check-input" @bind-Value="Status" />
-                    </div>
-                        <button class="btn btn-primary" type="submit">Save</button>
-                    
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<div class="row">
+    <div class="col-md-3">
+        <EditForm Model="@blog" OnValidSubmit="Save">
+            <DataAnnotationsValidator/>
+            <div class="form-group">
+                <div>
+                    <label for="Name">Blog Name:</label>
+                    <InputText class="form-control" @bind-Value="blog.Name" />
+                    <ValidationMessage For="@(()=>blog.Name)" />
+
                 </div>
-            </EditForm>
-        </div>
+                <div class="form-check form-switch">
+                    <label for="Status">Allow post and comments</label>
+                    <InputCheckbox class="form-check-input" @bind-Value="Status" />
+                </div>
+                    <button class="btn btn-primary" type="submit">Save</button>
+                
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            </div>
+        </EditForm>
     </div>
-}
+</div>
+
 
 
 @code {

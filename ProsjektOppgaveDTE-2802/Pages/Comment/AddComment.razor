@@ -11,31 +11,26 @@
 
 <h3>Create post</h3>
 
-@if (comment == null)
-{
-    <p><em>Loading...</em></p>
-}
-else
-{
-    <div class="row">
-        <div class="col-md-3">
-            <EditForm Model="@comment" OnValidSubmit="Save">
-                <DataAnnotationsValidator/>
-                <div class="form-group">
-                    <div>
-                        <label for="Name">Comment:</label>
-                        <InputText class="form-control" @bind-Value="comment.Text" />
-                        <ValidationMessage For="@(()=>comment.Text)" />
-                    </div>
 
-                        <button class="btn btn-primary" type="submit">Save</button>
-                    
-                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<div class="row">
+    <div class="col-md-3">
+        <EditForm Model="@comment" OnValidSubmit="Save">
+            <DataAnnotationsValidator/>
+            <div class="form-group">
+                <div>
+                    <label for="Name">Comment:</label>
+                    <InputText class="form-control" @bind-Value="comment.Text" />
+                    <ValidationMessage For="@(()=>comment.Text)" />
                 </div>
-            </EditForm>
-        </div>
+
+                    <button class="btn btn-primary" type="submit">Save</button>
+                
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            </div>
+        </EditForm>
     </div>
-}
+</div>
+
 
 
 @code {
