@@ -74,29 +74,7 @@ else
             }
         }
     }
-
-    @*string showTags()
-    {
-        string tags = "";
-        int length = blog.BlogTags.Count();
-        int index = 0;
-        foreach (var tag in blog.BlogTags)
-        {
-            if (length > 0)
-            {
-                tags += tag + ", ";
-                index += 1;
-            }
-            else
-            {
-                tags += tag;
-            }
-
-
-        }
-        return tags;
-    }*@
-
+    
     private BlogViewModel blog;
     protected override async Task OnInitializedAsync()
     {
