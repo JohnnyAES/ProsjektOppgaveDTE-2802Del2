@@ -4,6 +4,7 @@
 @inject NavigationManager NavigationManager
 @inject ILocalStorageService localStorage
 
+
 <h3>Blogs</h3>
 
 <a class="btn btn-primary" href="blog">Create</a>
@@ -14,26 +15,28 @@
 }
 else
 {
-    <table class="table" >
-    <thead>
-    <tr>
-        <th>Name</th>
-        <th>Owner</th>
-    </tr>
-    </thead>
-    <tbody>
+    
     @foreach (var blog in blogs)
     {
-        <tr>
-            <td>@blog.Name</td>
-            <td>@blog.Owner.Email</td>
-            <td><a href="posts/@blog.BlogId">View</a></td>
-            <td><a href="blog/@blog.BlogId">Edit</a></td>
-            <td><a href="blogs" @onclick="@(e =>DeleteBlog(blog.BlogId))">Delete</a></td>
-        </tr>
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header" align="center">
+                    <text>@blog.Owner.Email</text>
+                </div>
+                <div class="card-body" align="center">
+                    <text>@blog.Name</text>
+                    <div class="card-footer" align="center">
+                        <a class="btn btn-primary" href="posts/@blog.BlogId">View</a>
+                        <a class="btn btn-secondary" href="blog/@blog.BlogId">Edit</a>
+                        <a class="btn btn-danger" href="blogs" @onclick="@(e => DeleteBlog(blog.BlogId))">Delete</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br/>
     }
-    </tbody>
-    </table>
+    
+    
 }
 
 @code {

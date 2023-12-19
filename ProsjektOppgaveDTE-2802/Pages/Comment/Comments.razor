@@ -17,25 +17,25 @@
 }
 else
 {
-    <table class="table" >
-    <thead>
-    <tr>
-        <th>Text</th>
-        <th>Owner</th>
-    </tr>
-    </thead>
-    <tbody>
-            @foreach (var comment in comments)
+   
+    @foreach (var comment in comments)
     {
-        <tr>
-            <td>@comment.Text</td>
-            <td>@comment.Owner.Email</td>
-            <td><a href="comment/edit/@comment.CommentId">Edit</a></td>
-            <td><a href="/comments/@PostId" @onclick="@(e =>DeleteComment(comment.CommentId))">Delete</a></td>
-        </tr>
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header" align="center">
+                    <text>@comment.Owner.Email</text>
+                </div>
+                <div class="card-body" align="center">
+                    <text>@comment.Text</text>
+                    <div class="card-footer" align="center">
+                        <a class="btn btn-secondary" href="comment/edit/@comment.CommentId">Edit</a>
+                        <a class="btn btn-danger" href="/comments/@PostId" @onclick="@(e =>DeleteComment(comment.CommentId))">Delete</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br/>
     }
-    </tbody>
-    </table>
 }
 
 @code {
