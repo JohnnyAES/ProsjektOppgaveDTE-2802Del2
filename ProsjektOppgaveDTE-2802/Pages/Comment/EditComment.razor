@@ -1,8 +1,11 @@
 ﻿
-@page "/comment/{CommentId:int}"
+@page "/comment/edit/{CommentId:int}"
 @using ProsjektOppgaveBlazor.data.Models;
-@using Microsoft.AspNetCore.Identity
+@using Microsoft.AspNetCore.SignalR.Client
 @inject HttpClient BlogHttpClient
+@inject ILocalStorageService localStorage
+@inject NavigationManager NavigationManager
+@implements IAsyncDisposable
 
 <h3>Edit comment</h3>
 
@@ -32,6 +35,7 @@ else
 
 
 @code {
+    private HubConnection? hubConnection;
     [Parameter]
     public int CommentId { get; set; }
 
@@ -39,11 +43,34 @@ else
     protected override async Task OnInitializedAsync()
     {
         comment = await BlogHttpClient.GetFromJsonAsync<Comment>($"https://localhost:7022/Comment/{CommentId}");
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/commentHub"))
+            .Build();
+        
+        await hubConnection.StartAsync();
     }
     
     private async Task Save()
     {
+        var token = await localStorage.GetItemAsync<string>("authToken");
+        BlogHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await BlogHttpClient.PutAsJsonAsync($"https://localhost:7022/Comment/{CommentId}", comment);
+        if (response.IsSuccessStatusCode)
+        {
+            var result = await response.Content.ReadFromJsonAsync<Comment>();
+            await hubConnection.SendAsync("EditComment", result);
+            
+        }
+        
+        NavigationManager.NavigateTo($"/comments/{comment.PostId}");
+    }
+    
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
     }
 
 }

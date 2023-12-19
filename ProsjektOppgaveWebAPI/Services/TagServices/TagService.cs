@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using NuGet.Versioning;
 using ProsjektOppgaveWebAPI.Data;
 using ProsjektOppgaveWebAPI.Models;
 
@@ -15,6 +17,24 @@ public class TagService : ITagService
         _db = db;
     }
     
+    public async Task<IEnumerable<Tag>> GetTags()
+    {
+        try
+        {
+            var tags = _db.Tag
+                .ToList();
+
+            return tags;
+        }
+        catch (NullReferenceException ex)
+        {
+            Console.WriteLine(ex.Message);
+            Console.WriteLine(ex.StackTrace);
+        
+            return new List<Tag>();
+        }
+    }
+    
     public async Task Save(Tag tag)
     {
         var existingTag = _db.Tag.Find(tag.Id);
@@ -24,4 +44,12 @@ public class TagService : ITagService
             await _db.SaveChangesAsync();
         }
     }
+
+    public async Task CreateTagRelation(PostTagRelations pTagRelation)
+    {
+        _db.PostTagRelations.Add(pTagRelation);
+        await _db.SaveChangesAsync();
+
+    }
+    
 }

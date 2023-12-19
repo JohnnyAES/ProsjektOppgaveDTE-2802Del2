@@ -1,7 +1,11 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Common;
 using ProsjektOppgaveWebAPI.Models;
+using ProsjektOppgaveWebAPI.Models.ViewModel;
 using ProsjektOppgaveWebAPI.Services;
 
 namespace ProsjektOppgaveWebAPI.Controllers;
@@ -43,38 +47,52 @@ public class BlogController : ControllerBase
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] Blog blog)
+    public async Task<IActionResult> Create([FromBody] BlogViewModel blog)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
-        
-        await _service.Save(blog, User);
 
-        return CreatedAtAction("Get", new { id = blog.BlogId }, blog);
+        var newBlog = new Blog
+        {
+            Name = blog.Name,
+            Status = blog.Status
+        };
+
+        var username = User.Claims.FirstOrDefault()?.Value;
+        await _service.Save(newBlog, username);
+
+        return CreatedAtAction("Get", new { id = blog.BlogId }, newBlog);
     }
 
 
     [Authorize]
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update([FromRoute] int id, [FromBody] Blog blog)
+    public async Task<IActionResult> Update([FromRoute] int id, [FromBody] BlogViewModel blog)
     {
         if (id != blog.BlogId)
-            return BadRequest();
-
+            return BadRequest("Id not matching");
+        
         var existingBlog = _service.GetBlog(id);
         
         if (existingBlog is null)
-            return NotFound();
+            return NotFound("Blog not found");
         
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (existingBlog.OwnerId != userId)
+        var newBlog = new Blog
         {
-            return Unauthorized();
+            BlogId = id,
+            Name = blog.Name,
+            Status = blog.Status
+        };
+        
+        var username = User.Claims.FirstOrDefault()?.Value;
+        if (existingBlog.Owner.UserName != username)
+        {
+            return Unauthorized("feil bruker");
         }
         
-        await _service.Save(blog, User);
+        await _service.Save(newBlog, username);
 
         return NoContent();
     }
@@ -88,13 +106,13 @@ public class BlogController : ControllerBase
         if (blog is null)
             return NotFound();
         
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (blog.OwnerId != userId)
+        var username = User.Claims.FirstOrDefault()?.Value;
+        if (blog.Owner.UserName != username)
         {
             return Unauthorized();
         }
 
-        _service.Delete(id, User);
+        _service.Delete(id, username);
 
         return NoContent();
     }

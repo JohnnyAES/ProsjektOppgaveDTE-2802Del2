@@ -49,7 +49,7 @@ public class JwtService: IJwtService
         return new List<Claim>()
         {
             new Claim("Id", user.Id),
-            new Claim("Username", user.UserName)
+            new Claim("Name", user.UserName)
         };
     }
 }

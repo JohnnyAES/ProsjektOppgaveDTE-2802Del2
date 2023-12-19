@@ -11,4 +11,5 @@ public class Post
     public IdentityUser Owner { get; set; }
     public int BlogId { get; set; }
     public Blog Blog { get; set; }
+    public ICollection<PostTagRelations> PostTags { get; set; }
 }

@@ -6,20 +6,29 @@
 @using ProsjektOppgaveBlazor.data.Models.ViewModel
 @using ProsjektOppgaveBlazor.AuthProviders
 
-<PageTitle>Register</PageTitle>
-<h3>Register</h3>
-<input type="text" class="form-control" @bind="loginViewModel.Username">Username</input>
-<input type="password" class="form-control" @bind="loginViewModel.Password">Password</input>
-<p>Username: @userName</p>
-<p>Password: @password</p>
+<PageTitle>Login</PageTitle>
 
-<p>Error: @Error</p>
+<div class="row">
+    <div class="col-md-4">
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h4>Login</h4>
+            </div>
+            <div class="card-body">
+                <input type="text" class="form-control" placeholder="username" @bind="loginViewModel.Username"/><br/>
+                <input type="password" class="form-control" placeholder="password" @bind="loginViewModel.Password"/><br/>
+            </div>
+            <div class="card-footer">
+                <input type="button" class="btn btn-success" value="Login" @onclick="HandleRegistration"/>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4"></div>
+</div>
 
-
-<input type="button" class="btn btn-primary" value="Register" @onclick="HandleRegistration" />
-@* <input type="button" class="btn btn-primary" value="Login" @onclick="() => BlazorService.LoginUser(userName, password)" /> *@
-
-
+<p>@Error</p>
 
 @code {
 
@@ -44,15 +53,5 @@
         {
             NavigationManager.NavigateTo("/");
         }
-        
-
-
-
     }
-    
-    
-
-
-
-
 }

@@ -1,9 +1,10 @@
 ﻿
 @page "/blog/{BlogId:int}"
 
-@using ProsjektOppgaveBlazor.data.Models;
-@using Microsoft.AspNetCore.Identity
+@using ProsjektOppgaveBlazor.data.Models.ViewModel
 @inject HttpClient BlogHttpClient
+@inject ILocalStorageService localStorage
+@inject NavigationManager NavigationManager
 
 <h3>Edit blog</h3>
 
@@ -26,7 +27,6 @@ else
                     <div class="form-check form-switch">
                         <label for="Status">Allow post and comments</label>
                         <InputCheckbox class="form-check-input" @bind-Value="Status"/>
-                        <ValidationMessage For="@(()=>blog.Status)" />
                     </div>
                     @*@if (blog.BlogTags != null)
                     {
@@ -97,15 +97,18 @@ else
         return tags;
     }*@
 
-    private Blog blog;
+    private BlogViewModel blog;
     protected override async Task OnInitializedAsync()
     {
-        blog = await BlogHttpClient.GetFromJsonAsync<Blog>($"https://localhost:7022/Blog/{BlogId}");
+        blog = await BlogHttpClient.GetFromJsonAsync<BlogViewModel>($"https://localhost:7022/Blog/{BlogId}");
     }
 
     private async Task Save()
     {
+        var token = await localStorage.GetItemAsync<string>("authToken");
+        BlogHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await BlogHttpClient.PutAsJsonAsync($"https://localhost:7022/Blog/{BlogId}", blog);
+        NavigationManager.NavigateTo("/blogs");
     }
 
 }

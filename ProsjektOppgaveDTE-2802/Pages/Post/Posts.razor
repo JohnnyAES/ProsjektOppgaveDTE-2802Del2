@@ -1,52 +1,85 @@
-﻿@page "/posts/{BlogId}"
+﻿@page "/posts/{BlogId:int}"
 @using ProsjektOppgaveBlazor.data.Models;
 @inject HttpClient BlogHttpClient
 @inject NavigationManager NavigationManager
+@inject ILocalStorageService localStorage
 
 <h3>Posts</h3>
 
-<a class="btn btn-primary" href="post">Create</a>
+<a class="btn btn-primary" href="post/@BlogId">Create</a>
 
 @if (posts == null) 
 {
     <p><em>Loading...</em></p>
 }
+
+
 else
 {
-    <table class="table" >
-    <thead>
-    <tr>
-        <th>Title</th>
-        <th>Content</th>
-    </tr>
-    </thead>
-    <tbody>
+    
+        <div class="form-group">
+            <input class="form-control" @bind="searchWord" placeholder="Search.."/>
+        </div>
+    <button class="btn btn-primary" type="button" onclick="@Search">Search</button>
+    
+   
     @foreach (var post in posts)
     {
-        <tr>
-            <td>@post.Title</td>
-            <td>@post.Content</td>
-            <td><a href="comments/@post.PostId">View</a></td>
-            <td><a href="post/@post.PostId">Edit</a></td>
-            <td><a href="posts" @onclick="@(e =>DeleteBlog(post.PostId))">Delete</a></td>
-        </tr>
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header" align="center">
+                    <text>@post.Title</text>
+                </div>
+                <div class="card-body" align="center">
+                    <text>@post.Content</text>
+                    <div class="card-footer" align="center">
+                        <a class="btn btn-primary" href="comments/@post.PostId">View</a>
+                        <a class="btn btn-secondary" href="post/edit/@post.PostId">Edit</a>
+                        <a class="btn btn-danger" href="/posts/@BlogId" @onclick="@(e =>DeletePost(post.PostId))">Delete</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br/>
     }
-    </tbody>
-    </table>
 }
 
 @code {
     [Parameter]
-    public string BlogId { get; set; }
+    public int BlogId { get; set; }
     private Post[] posts;
+    public string searchWord { get; set; }
+    
 
     protected override async Task OnInitializedAsync()
     {
         posts = await BlogHttpClient.GetFromJsonAsync<Post[]>($"https://localhost:7022/Post?blogId={BlogId}");
     }
 
-    private async Task DeleteBlog(int id)
+    private async Task DeletePost(int id)
     {
+        var token = await localStorage.GetItemAsync<string>("authToken");
+        BlogHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await BlogHttpClient.DeleteAsync($"https://localhost:7022/Post/{id}");
+        NavigationManager.NavigateTo($"/posts/{BlogId}", true);
     }
+
+    private async Task Search()
+    {
+        if (searchWord == "")
+        {
+            posts = await BlogHttpClient.GetFromJsonAsync<Post[]>($"https://localhost:7022/Post?blogId={BlogId}");
+        }
+        foreach (var post in posts)
+        {
+            foreach (var postTag in post.PostTags)
+            {
+                if (postTag.tag.Name == searchWord)
+                {
+                    posts = new[] { post };
+                }
+            }
+        }
+    }
+
 }

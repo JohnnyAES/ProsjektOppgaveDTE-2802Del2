@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProsjektOppgaveWebAPI.Models;
+using ProsjektOppgaveWebAPI.Models.ViewModel;
 using ProsjektOppgaveWebAPI.Services.CommentServices;
 
 namespace ProsjektOppgaveWebAPI.Controllers;
@@ -34,21 +35,28 @@ public class CommentController : ControllerBase
     
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] Comment comment)
+    public async Task<IActionResult> Create([FromBody] CommentViewModel comment)
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
+
+        var newComment = new Comment
+        {
+            Text = comment.Text,
+            PostId = comment.PostId
+        };
         
-        await _service.Save(comment, User);
-        return CreatedAtAction("GetComment", new { id = comment.PostId }, comment);
+        var username = User.Claims.FirstOrDefault()?.Value;
+        await _service.Save(newComment, username);
+        return CreatedAtAction("GetComment", new { id = comment.PostId }, newComment);
     }
     
     
     [Authorize]
     [HttpPut("{id:int}")]
-    public IActionResult Update([FromRoute] int id, [FromBody] Comment comment)
+    public IActionResult Update([FromRoute] int id, [FromBody] CommentViewModel comment)
     {
         if (id != comment.CommentId)
             return BadRequest();
@@ -57,15 +65,22 @@ public class CommentController : ControllerBase
         if (existingComment is null)
             return NotFound();
         
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (existingComment.OwnerId != userId)
+        var username = User.Claims.FirstOrDefault()?.Value;
+        if (existingComment.Owner.UserName != username)
         {
             return Unauthorized();
         }
+        
+        var newComment = new Comment
+        {
+            CommentId = comment.CommentId,
+            Text = comment.Text,
+            PostId = comment.PostId
+        };
+        
+        _service.Save(newComment, username);
 
-        _service.Save(comment, User);
-
-        return NoContent();
+        return CreatedAtAction("GetComment", new { id = comment.PostId }, newComment);
     }
     
     
@@ -77,13 +92,13 @@ public class CommentController : ControllerBase
         if (comment is null)
             return NotFound();
         
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (comment.OwnerId != userId)
+        var username = User.Claims.FirstOrDefault()?.Value;
+        if (comment.Owner.UserName != username)
         {
             return Unauthorized();
         }
-
-        _service.Delete(id, User);
+        
+        _service.Delete(id, username);
 
         return NoContent();
     }

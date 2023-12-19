@@ -10,4 +10,5 @@ public class PostViewModel
     [Required(ErrorMessage = "Content Required"), StringLength(750)]
     public string Content { get; set; }
     public int BlogId { get; set; }
+    
 }

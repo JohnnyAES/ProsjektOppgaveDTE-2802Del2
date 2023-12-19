@@ -11,9 +11,9 @@ public interface IBlogService
 
     Blog? GetBlog(int id);
     
-    Task Save(Blog blog, IPrincipal principal);
+    Task Save(Blog blog, string username);
     
-    Task Delete(int id , IPrincipal principal);
+    Task Delete(int id , string username);
 
     BlogViewModel GetBlogViewModel();
 
@@ -25,9 +25,9 @@ public interface IBlogService
 
     Post? GetPost(int id);
     
-    Task SavePost(Post post, IPrincipal principal);
+    Task SavePost(Post post, string username);
 
-    Task DeletePost(int id, IPrincipal principal);
+    Task DeletePost(int id, string username);
     
     PostViewModel GetPostViewModel();
 

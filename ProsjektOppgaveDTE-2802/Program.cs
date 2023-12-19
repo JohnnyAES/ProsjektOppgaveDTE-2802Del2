@@ -1,9 +1,10 @@
+using System.Collections.Immutable;
 using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Web;
+using Microsoft.AspNetCore.ResponseCompression;
 using ProsjektOppgaveBlazor.AuthProviders;
 using ProsjektOppgaveDTE_2802.Data;
+using ProsjektOppgaveDTE_2802.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,9 @@ builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<AuthenticationStateProvider, AuthStateProvider>();
 builder.Services.AddSingleton<WeatherForecastService>();
 builder.Services.AddHttpClient("BlogHttpClient", client => client.BaseAddress = new Uri("https://localhost:7115"));
+builder.Services.AddSignalR();
+builder.Services.AddResponseCompression(opts =>
+    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" }));
 
 var app = builder.Build();
 
@@ -27,6 +31,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseResponseCompression();
+app.MapHub<CommentHub>("/commentHub");
 app.UseHttpsRedirection();
 
 app.UseStaticFiles();

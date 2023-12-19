@@ -47,17 +47,23 @@ public class BlogService : IBlogService
         var b = (from blog in _db.Blog
             where blog.BlogId == id
             select blog)
-            .Include(b => b.BlogTags)
+            .Include(b => b.Owner)
             .FirstOrDefault();
         return b;
     }
  
-    public async Task Save(Blog blog, IPrincipal principal)
+    public async Task Save(Blog blog, string username)
     {
-        var user = await _manager.FindByNameAsync(principal.Identity?.Name);
+        Console.WriteLine("EYO");
+        Console.WriteLine(username);
+        Console.WriteLine("EYO");
+        var user = await _manager.FindByNameAsync(username);
+        Console.WriteLine("hmm");
+        Console.WriteLine(user?.UserName);
+        Console.WriteLine("hmm");
         if (user == null)
         {
-            throw new ArgumentNullException(nameof(principal), "User not found");
+            throw new ArgumentNullException(nameof(username), "User not found");
         }
 
         var existingBlog = _db.Blog.Find(blog.BlogId);
@@ -75,9 +81,9 @@ public class BlogService : IBlogService
         await _db.SaveChangesAsync();
     }
     
-    public async Task Delete(int id, IPrincipal principal)
+    public async Task Delete(int id, string username)
     {
-        var user = await _manager.FindByNameAsync(principal.Identity.Name);
+        var user = await _manager.FindByNameAsync(username);
         var blog = _db.Blog.Find(id);
 
         if (blog.Owner == user)
@@ -119,6 +125,8 @@ public class BlogService : IBlogService
         var p = (from post in _db.Post
                 where post.PostId == id
                 select post)
+            .Include(p => p.Owner)
+            .Include(p => p.PostTags)
             .FirstOrDefault();
         return p;
     }
@@ -130,6 +138,8 @@ public class BlogService : IBlogService
             var posts = _db.Post
                 .Where(p => p.BlogId == blogId)
                 .Include(p => p.Owner)
+                .Include(p => p.PostTags)
+                .ThenInclude(t => t.tag)
                 .ToList();
 
             return posts;
@@ -143,9 +153,10 @@ public class BlogService : IBlogService
         }
     }
     
-    public async Task SavePost(Post post, IPrincipal principal)
+    public async Task SavePost(Post post, string username)
     {
-        var user = await _manager.FindByNameAsync(principal.Identity.Name);
+        var user = await _manager.FindByNameAsync(username);
+        Console.WriteLine(user.UserName);
 
         var existingPost = _db.Post.Find(post.PostId);
         if (existingPost != null)
@@ -162,9 +173,9 @@ public class BlogService : IBlogService
         await _db.SaveChangesAsync();
     }
 
-    public async Task DeletePost(int id, IPrincipal principal)
+    public async Task DeletePost(int id, string username)
     {
-        var user = await _manager.FindByNameAsync(principal.Identity.Name);
+        var user = await _manager.FindByNameAsync(username);
         var post = _db.Post.Find(id);
         
         if (post.Owner == user)

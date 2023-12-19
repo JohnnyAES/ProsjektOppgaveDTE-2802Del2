@@ -1,8 +1,11 @@
-﻿@page "/post"
+﻿@page "/post/{BlogId:int}"
 
-@using ProsjektOppgaveBlazor.data.Models;
-@using Microsoft.AspNetCore.Identity
+@using ProsjektOppgaveBlazor.data.Models.ViewModel
+@using ProsjektOppgaveBlazor.data.Models
+@using System.Collections.Immutable
 @inject HttpClient BlogHttpClient
+@inject ILocalStorageService localStorage
+@inject NavigationManager NavigationManager
 
 <h3>Create post</h3>
 
@@ -41,42 +44,73 @@ else
 @code {
     [Parameter]
     public int PostId { get; set; }
-
-
-    private Post post = new Post();
-
+    
+    [Parameter]
+    public int BlogId { get; set; }
+    
+    private PostViewModel post = new PostViewModel();
+    private Tag newTag = new Tag();
+    private PostTagRelationsViewModel tagRelation = new PostTagRelationsViewModel();
+    
+    List<string> tags = new List<string>();
 
     private async Task Save()
     {
-        
-        string dateStr = "2023-12-06T04:26:57.086Z";
-        DateTimeOffset lockoutEnd = DateTimeOffset.Parse(dateStr);
-        var hasher = new PasswordHasher<IdentityUser>();
-        post.OwnerId = "57365b7a-5844-4312-a38d-fbb40efbdf08";
-        post.Owner = new IdentityUser
+        string word = "";
+        bool isTag = false;
+        var count = 0;
+        foreach (var letter in post.Content)
+        {
+            List <string> stopCharacters = new List<string>{" ", ",", ".", "#", ""};
+
+            if (letter.ToString() == "#")
             {
-            UserName = "admin",
-            NormalizedUserName = "ADMIN",
-            Email = "admin@example.com",
-            NormalizedEmail = "ADMIN@EXAMPLE.COM",
-            EmailConfirmed = true,
-            PasswordHash = hasher.HashPassword(null, "AdminPassword123!"),
-            SecurityStamp = string.Empty,
-            ConcurrencyStamp = string.Empty,
-            PhoneNumber = string.Empty,
-            PhoneNumberConfirmed = false,
-            TwoFactorEnabled = false,
-            LockoutEnd = lockoutEnd,
-            LockoutEnabled = false,
-            AccessFailedCount = 0
-
-
-        };
-
-
+                isTag = true;
+                word = "";
+            }
+            
+            else if (stopCharacters.Contains(letter.ToString()))
+            {
+                if (isTag)
+                {
+                    tags.Add(word);
+                    isTag = false;
+                }
+                word = ""; 
+            }
+            else
+            {
+                word += letter.ToString();
+            }
+            
+        }
+        if (isTag)
+        {
+            tags.Add(word);
+        }
+        
+        post.BlogId = BlogId;
+        var token = await localStorage.GetItemAsync<string>("authToken");
+        BlogHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await BlogHttpClient.PostAsJsonAsync("https://localhost:7022/post", post);
+        if (response.IsSuccessStatusCode)
+        {
+            var newPostId = response.Content.ReadFromJsonAsync<int>().Result;
+            foreach (var tag in tags)
+            {
+                newTag.Name = tag;
+                
+                BlogHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                var tagResponse = await BlogHttpClient.PostAsJsonAsync("https://localhost:7022/Tag", newTag);
+                var newTagId = tagResponse.Content.ReadFromJsonAsync<Tag>().Result.Id;
+                tagRelation.TagId = newTagId;
+                tagRelation.PostId = newPostId;
+                
 
-
+                BlogHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                await BlogHttpClient.PostAsJsonAsync("https://localhost:7022/tag/createPostTagRelations", tagRelation);
+            }
+        }
+        NavigationManager.NavigateTo($"/posts/{BlogId}");
     }
-
 }

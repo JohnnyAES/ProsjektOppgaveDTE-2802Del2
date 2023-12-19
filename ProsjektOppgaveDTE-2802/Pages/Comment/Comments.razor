@@ -1,11 +1,15 @@
-﻿@page "/comments/{PostId}"
+﻿@page "/comments/{PostId:int}"
 @using ProsjektOppgaveBlazor.data.Models;
+@using Microsoft.AspNetCore.SignalR.Client
+@using ProsjektOppgaveBlazor.data.Models.ViewModel
 @inject HttpClient BlogHttpClient
 @inject NavigationManager NavigationManager
+@inject ILocalStorageService localStorage
+@implements IAsyncDisposable
 
 <h3>Comments</h3>
 
-<a class="btn btn-primary" href="comment">Create</a>
+<a class="btn btn-primary" href="comment/@PostId">Create</a>
 
 @if (comments == null) 
 {
@@ -13,39 +17,83 @@
 }
 else
 {
-    <table class="table" >
-    <thead>
-    <tr>
-        <th>Text</th>
-        <th>Owner</th>
-    </tr>
-    </thead>
-    <tbody>
-            @foreach (var comment in comments)
+   
+    @foreach (var comment in comments)
     {
-        <tr>
-            <td>@comment.Text</td>
-            <td>@comment.Owner.Email</td>
-            <td><a href="comment/@comment.CommentId">Edit</a></td>
-            <td><a href="comments" @onclick="@(e =>DeleteBlog(comment.PostId))">Delete</a></td>
-        </tr>
+        <div class="col-md-7">
+            <div class="card">
+                <div class="card-header" align="center">
+                    <text>@comment.Owner.Email</text>
+                </div>
+                <div class="card-body" align="center">
+                    <text>@comment.Text</text>
+                    <div class="card-footer" align="center">
+                        <a class="btn btn-secondary" href="comment/edit/@comment.CommentId">Edit</a>
+                        <a class="btn btn-danger" href="/comments/@PostId" @onclick="@(e =>DeleteComment(comment.CommentId))">Delete</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br/>
     }
-    </tbody>
-    </table>
 }
 
 @code {
+    private HubConnection? hubConnection;
+    
     [Parameter]
-    public string PostId { get; set; }
+    public int PostId { get; set; }
     private Comment[] comments;
 
     protected override async Task OnInitializedAsync()
     {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("/commentHub"))
+            .Build();
         comments = await BlogHttpClient.GetFromJsonAsync<Comment[]>($"https://localhost:7022/Comment?postId={PostId}");
+
+        hubConnection.On<Comment>("NewComment", comment =>
+        {
+            
+            comments = comments.Concat(new []{comment}).ToArray();
+            StateHasChanged();
+
+        }); 
+        
+        hubConnection.On<Comment>("UpdateComment", comment =>
+        {
+
+            var editedComment = comments.FirstOrDefault(c => c.CommentId == comment.CommentId);
+            editedComment.Text = comment.Text;
+            StateHasChanged();
+        }); 
+        
+        hubConnection.On<int>("RemoveComment", id =>
+        {
+            comments = comments.Where(c => c.CommentId != id).ToArray();
+            StateHasChanged();
+
+        });
+        await hubConnection.StartAsync();
     }
 
-    private async Task DeleteBlog(int id)
+    private async Task DeleteComment(int id)
     {
+        var token = await localStorage.GetItemAsync<string>("authToken");
+        BlogHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var response = await BlogHttpClient.DeleteAsync($"https://localhost:7022/Comment/{id}");
+        if (response.IsSuccessStatusCode)
+        {
+            await hubConnection.SendAsync("DeleteComment", id);
+        }
+    }
+    
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
     }
 }
