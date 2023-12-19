@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using NuGet.Versioning;
 using ProsjektOppgaveWebAPI.Data;
 using ProsjektOppgaveWebAPI.Models;

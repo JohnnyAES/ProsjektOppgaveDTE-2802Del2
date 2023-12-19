@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using ProsjektOppgaveBlazor.data.Models.ViewModel;
 using ProsjektOppgaveWebAPI.Models;
 using ProsjektOppgaveWebAPI.Services.TagServices;
 
@@ -38,18 +39,21 @@ public class TagController : ControllerBase
     }
     
     [Authorize]
-    [HttpPost("relation")]
-    public async Task<IActionResult> CreateRelation([FromBody] PostTagRelations pTagRelation)
+    [HttpPost("createPostTagRelations")]
+    public async Task<IActionResult> CreateRelation([FromBody] PostTagRelationsViewModel pTagRelation)
 
     {
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);
         }
-        Console.WriteLine(" ");
-        Console.WriteLine(" ey ");
-        Console.WriteLine(" ");
-        await _service.CreateTagRelation(pTagRelation);
+
+        PostTagRelations newPtagRelation = new PostTagRelations
+        {
+            PostId = pTagRelation.PostId,
+            TagId = pTagRelation.TagId
+        };
+        await _service.CreateTagRelation(newPtagRelation);
         return Ok();
     }
     

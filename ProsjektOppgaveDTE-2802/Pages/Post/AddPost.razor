@@ -50,7 +50,7 @@ else
     
     private PostViewModel post = new PostViewModel();
     private Tag newTag = new Tag();
-    private PostTagRelations tagRelation = new PostTagRelations();
+    private PostTagRelationsViewModel tagRelation = new PostTagRelationsViewModel();
     
     List<string> tags = new List<string>();
 
@@ -105,16 +105,10 @@ else
                 var newTagId = tagResponse.Content.ReadFromJsonAsync<Tag>().Result.Id;
                 tagRelation.TagId = newTagId;
                 tagRelation.PostId = newPostId;
-                Console.WriteLine(newTagId);
-                Console.WriteLine(newTagId);
-                Console.WriteLine(newTagId);
-                Console.WriteLine(newPostId);
-                Console.WriteLine(newPostId);
-                Console.WriteLine(newPostId);
                 
 
                 BlogHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-                await BlogHttpClient.PostAsJsonAsync("https://localhost:7022/tag/relation", tagRelation);
+                await BlogHttpClient.PostAsJsonAsync("https://localhost:7022/tag/createPostTagRelations", tagRelation);
             }
         }
         NavigationManager.NavigateTo($"/posts/{BlogId}");

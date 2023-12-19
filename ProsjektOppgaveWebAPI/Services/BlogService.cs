@@ -139,6 +139,7 @@ public class BlogService : IBlogService
                 .Where(p => p.BlogId == blogId)
                 .Include(p => p.Owner)
                 .Include(p => p.PostTags)
+                .ThenInclude(t => t.tag)
                 .ToList();
 
             return posts;

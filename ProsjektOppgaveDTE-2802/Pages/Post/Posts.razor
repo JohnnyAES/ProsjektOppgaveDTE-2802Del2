@@ -12,8 +12,17 @@
 {
     <p><em>Loading...</em></p>
 }
+
+
 else
 {
+    
+        <div class="form-group">
+            <input class="form-control" @bind="searchWord" placeholder="Search.."/>
+        </div>
+    <button class="btn btn-primary" type="button" onclick="@Search">Search</button>
+    
+   
     @foreach (var post in posts)
     {
         <div class="col-md-7">
@@ -39,6 +48,8 @@ else
     [Parameter]
     public int BlogId { get; set; }
     private Post[] posts;
+    public string searchWord { get; set; }
+    
 
     protected override async Task OnInitializedAsync()
     {
@@ -52,4 +63,23 @@ else
         var response = await BlogHttpClient.DeleteAsync($"https://localhost:7022/Post/{id}");
         NavigationManager.NavigateTo($"/posts/{BlogId}", true);
     }
+
+    private async Task Search()
+    {
+        if (searchWord == "")
+        {
+            posts = await BlogHttpClient.GetFromJsonAsync<Post[]>($"https://localhost:7022/Post?blogId={BlogId}");
+        }
+        foreach (var post in posts)
+        {
+            foreach (var postTag in post.PostTags)
+            {
+                if (postTag.tag.Name == searchWord)
+                {
+                    posts = new[] { post };
+                }
+            }
+        }
+    }
+
 }
